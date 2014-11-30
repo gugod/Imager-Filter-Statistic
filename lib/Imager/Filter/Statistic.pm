@@ -24,6 +24,22 @@ sub summerize {
             int($sum[1]/@c),
             int($sum[2]/@c),
         ]
+    } elsif ($method eq 'min') {
+        my @min = (255,255,255);
+        for my $c (@c) {
+            $min[0] = $c->[0] if $c->[0] < $min[0];
+            $min[1] = $c->[1] if $c->[1] < $min[1];
+            $min[2] = $c->[2] if $c->[2] < $min[2];
+        }
+        return \@min;
+    } elsif ($method eq 'max') {
+        my @max = (0,0,0);
+        for my $c (@c) {
+            $max[0] = $c->[0] if $c->[0] > $max[0];
+            $max[1] = $c->[1] if $c->[1] > $max[1];
+            $max[2] = $c->[2] if $c->[2] > $max[2];
+        }
+        return \@max;
     } elsif ($method eq 'gradient') {
         my @max = (0,0,0);
         my @min = (255,255,255);
@@ -42,6 +58,11 @@ sub summerize {
         ]
     }
     die "unknown statistic method = $method";
+}
+
+sub build_tables {
+    my $ctxt = shift;
+    
 }
 
 sub statistic_filter {
