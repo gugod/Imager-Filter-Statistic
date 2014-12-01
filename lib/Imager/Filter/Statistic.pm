@@ -2,6 +2,8 @@ use strict;
 use warnings;
 package Imager::Filter::Statistic;
 
+use List::Util qw<min>;
+
 use Imager;
 use Imager::Color;
 
@@ -34,9 +36,9 @@ sub summerize {
         my @mean = (int($sum[0]/@c), int($sum[1]/@c), int($sum[2]/@c));
         my @variance = (0,0,0);
         for my $c (@c) {
-            $variance[0] += ($c->[0] - $mean[0])**2 / @c;
-            $variance[1] += ($c->[1] - $mean[1])**2 / @c;
-            $variance[2] += ($c->[2] - $mean[2])**2 / @c;
+            $variance[0] += ($c->[0] - $mean[0])**2 / $#c;
+            $variance[1] += ($c->[1] - $mean[1])**2 / $#c;
+            $variance[2] += ($c->[2] - $mean[2])**2 / $#c;
         }
         return \@variance;
     } elsif ($method eq 'min') {
@@ -84,12 +86,25 @@ sub statistic_filter {
 
     my ($w,$h) = split("x", $param{geometry});
     $h ||= $w;
+    my $w_half = int($w/2) + 1;
+    my $h_half = int($h/2) + 1;
 
-    for my $y (0..$img->getheight-1) {
-        for my $x (0..$img->getwidth-1) {
+    my $x_offset = $w_half - $w; # must be negative
+
+
+    my $img_bound_x = $img->getwidth - 1;
+    my $img_bound_y = $img->getheight - 1;
+    
+    for my $y (0 .. $img_bound_y) {
+        for my $x (0..$img_bound_x) {
+            my $x_l = ( $x < $w_half ) ? 0 : ($x + $x_offset);
+            my $x_r = $x_l + $w;
+            my $w_ = ($x_r > $img_bound_x) ? ($img_bound_x - $x_l) : $w;
+
             my @px;
-            for (0..$h) {
-                push @px, $img_copy->getscanline(y=>$y+$_, x=>$x, width=>$w);
+            for my $y_ (($y+ $h_half-$w)..($y+ $h_half)) {
+                next if $y_ < 0 || $y_ > $img_bound_y;
+                push @px, $img_copy->getscanline(y => $y_, x => $x_l, width => $w_);
             }
             my $new_px = summerize($ctx, \@px);
             
