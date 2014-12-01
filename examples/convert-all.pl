@@ -4,17 +4,18 @@ use warnings;
 use Imager;
 use Imager::Filter::Statistic;
 
-my $file = shift @ARGV;
+my ($file, $output_dir) = @ARGV;
+
 my $img = Imager->new(file => $file) or die Imager->errstr;
-my $img_copy;
 
-$img_copy = $img->copy;
-$img_copy->filter( type => "statistic", method => "gradient", "geometry" => "3x3" );
-$img_copy->write(file => "output.gradient.jpg");
+for my $method (qw< gradient variance min max mean >) {
+    print "doing $method\n";
+    my $img_copy = $img->copy;
+    $img_copy->filter( type => "statistic", method => $method, "geometry" => "3x3" );
+    $img_copy->write(file => "$output_dir/filter.$method.jpg");
+    print "... done\n";
+}
 
-# $img_copy = $img->copy;
-# $img_copy->filter( type => "statistic", method => "mean", "geometry" => "3x3" );
-# $img_copy->write(file => "output.mean.jpg");
 
 
 

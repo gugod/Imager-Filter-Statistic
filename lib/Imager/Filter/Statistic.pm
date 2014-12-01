@@ -6,8 +6,8 @@ use Imager;
 use Imager::Color;
 
 sub summerize {
-    my ($method, $pixels) = @_;
-    $method = lc $method;
+    my ($ctx, $pixels) = @_;
+    my $method = lc $ctx->{param}{method};
     my @c = map { [$_->rgba] } @$pixels;
 
     my @sum = (0,0,0);
@@ -24,6 +24,21 @@ sub summerize {
             int($sum[1]/@c),
             int($sum[2]/@c),
         ]
+    } elsif ($method eq 'variance') {
+        my @sum;
+        for my $c (@c) {
+            $sum[0] += $c->[0];
+            $sum[1] += $c->[1];
+            $sum[2] += $c->[2];
+        }
+        my @mean = (int($sum[0]/@c), int($sum[1]/@c), int($sum[2]/@c));
+        my @variance = (0,0,0);
+        for my $c (@c) {
+            $variance[0] += ($c->[0] - $mean[0])**2 / @c;
+            $variance[1] += ($c->[1] - $mean[1])**2 / @c;
+            $variance[2] += ($c->[2] - $mean[2])**2 / @c;
+        }
+        return \@variance;
     } elsif ($method eq 'min') {
         my @min = (255,255,255);
         for my $c (@c) {
@@ -60,13 +75,9 @@ sub summerize {
     die "unknown statistic method = $method";
 }
 
-sub build_tables {
-    my $ctxt = shift;
-    
-}
-
 sub statistic_filter {
     my %param = @_;
+    my $ctx = { param => \%param };
 
     my $img = $param{imager};
     my $img_copy = $img->copy();
@@ -80,7 +91,7 @@ sub statistic_filter {
             for (0..$h) {
                 push @px, $img_copy->getscanline(y=>$y+$_, x=>$x, width=>$w);
             }
-            my $new_px = summerize($param{method}, \@px);
+            my $new_px = summerize($ctx, \@px);
             
             $new_px = Imager::Color->new(@$new_px);
             my @new_px = map { $new_px } 0..$w-1;
