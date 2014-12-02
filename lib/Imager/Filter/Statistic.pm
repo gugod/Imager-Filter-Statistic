@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package Imager::Filter::Statistic;
 
-use List::Util qw<min>;
+use List::Util qw<min max>;
 
 use Imager;
 use Imager::Color;
@@ -85,34 +85,24 @@ sub statistic_filter {
     my $img_copy = $img->copy();
 
     my ($w,$h) = split("x", $param{geometry});
-    $h ||= $w;
-    my $w_half = int($w/2) + 1;
-    my $h_half = int($h/2) + 1;
-
-    my $x_offset = $w_half - $w; # must be negative
-
-
+    $w ||= $h;
+    my $w_half_1 = int(($w-1)/2);
+    my $w_half_2 = int($w/2);
+    my $h_half_1 = int(($h-1)/2);
+    my $h_half_2 = int($h/2);
     my $img_bound_x = $img->getwidth - 1;
     my $img_bound_y = $img->getheight - 1;
-    
+
     for my $y (0 .. $img_bound_y) {
         for my $x (0..$img_bound_x) {
-            my $x_l = ( $x < $w_half ) ? 0 : ($x + $x_offset);
-            my $x_r = $x_l + $w;
-            my $w_ = ($x_r > $img_bound_x) ? ($img_bound_x - $x_l) : $w;
-
-            my @px;
-            for my $y_ (($y+ $h_half-$w)..($y+ $h_half)) {
-                next if $y_ < 0 || $y_ > $img_bound_y;
-                push @px, $img_copy->getscanline(y => $y_, x => $x_l, width => $w_);
-            }
+            my $y_0 = max(0, $y - $h_half_1);
+            my $y_1 = min($y + $h_half_2, $img_bound_y);
+            my $x_0 = max(0, $x - $w_half_1);
+            my $x_1 = min($x + $w_half_2, $img_bound_x);
+            my $w_ = $x_1 - $x_0 + 1;
+            my @px = map { $img_copy->getscanline(y => $_, x => $x_0, width => $w_) } ($y_0 .. $y_1);
             my $new_px = summerize($ctx, \@px);
-            
-            $new_px = Imager::Color->new(@$new_px);
-            my @new_px = map { $new_px } 0..$w-1;
-            for (0..$h) {
-                push @px, $img->setscanline(y=>$y+$_, x=>$x, pixels => \@new_px);
-            }
+            $img->setpixel( y => $y, x => $x, color => $new_px);
         }
     }
 }
