@@ -1,6 +1,44 @@
 use strict;
 use warnings;
 package Imager::Filter::Statistic;
+# ABSTRACT: Provide statistica-based pixel filters.
+
+=head1 SYNOPSIS
+
+    use Imager;
+    use Imager::Filter::Statistic;
+
+    my $img = Imager->new(file => $file) or die Imager->errstr;
+    $img->filter(
+        type => "statistic",
+        method => "gradient",
+        geometry => "3x3"
+    );
+    $img->write(file => "filtered-by-gradient.png");
+
+=head1 DESCRIPTION
+
+This module provide a "statistic" type of image filter to work with L<Imager>. The filter does a sliding window scan.
+For each pixel in the image, the pixel value is replaced by the summerizing its surroundings with a statistic
+method. The parameter "geometry" means the size of sliding window, with format C<${width}x${height}>. The parameter
+"method" means the summerizing method. Here's the full list of them:
+
+=over 4
+
+=item gradient (max - min)
+
+=item variance
+
+=item mean
+
+=item min
+
+=item max
+
+=back 
+
+
+=cut
 
 use List::Util qw<min max>;
 
