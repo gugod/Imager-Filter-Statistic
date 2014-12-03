@@ -128,6 +128,22 @@ sub summerize {
             scalar(max_by { $freq[1]{$_} } (keys %{$freq[1]})),
             scalar(max_by { $freq[2]{$_} } (keys %{$freq[2]})),
         ]
+    } elsif ($method eq 'median') {
+        my @pixels;
+        for my $c (@c) {
+            push @{$pixels[0]}, $c->[0];
+            push @{$pixels[1]}, $c->[1];
+            push @{$pixels[2]}, $c->[2];
+        }
+        @{$pixels[0]} = sort {$a<=>$b} @{$pixels[0]};
+        @{$pixels[1]} = sort {$a<=>$b} @{$pixels[1]};
+        @{$pixels[2]} = sort {$a<=>$b} @{$pixels[2]};
+        my $middle = int( (@c-1)/2 );
+        return [
+            $pixels[0][$middle],
+            $pixels[1][$middle],
+            $pixels[2][$middle],
+        ]
     }
     die "unknown statistic method = $method";
 }

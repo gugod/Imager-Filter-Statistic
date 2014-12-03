@@ -11,7 +11,7 @@ $geometry ||= "3x3";
 
 my $img = Imager->new(file => $file) or die Imager->errstr;
 
-for my $method (qw< gradient variance min max mean >) {
+for my $method (qw< median mode gradient variance min max mean >) {
     print "doing $method\n";
     my $img_copy = $img->copy;
     $img_copy->filter( type => "statistic", method => $method, "geometry" => $geometry );
