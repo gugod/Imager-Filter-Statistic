@@ -35,12 +35,16 @@ method. The parameter "geometry" means the size of sliding window, with format C
 
 =item max
 
+=item mode
+
+
 =back 
 
 
 =cut
 
 use List::Util qw<min max>;
+use List::UtilsBy qw<max_by>;
 
 use Imager;
 use Imager::Color;
@@ -110,6 +114,19 @@ sub summerize {
             $max[0] - $min[0],
             $max[1] - $min[1],
             $max[2] - $min[2],
+        ]
+    } elsif ($method eq 'mode') {
+        my @freq;
+        for my $c (@c) {
+            $freq[0]{$c->[0]} += 1;
+            $freq[1]{$c->[1]} += 1;
+            $freq[2]{$c->[2]} += 1;
+        }
+
+        return [
+            scalar(max_by { $freq[0]{$_} } (keys %{$freq[0]})),
+            scalar(max_by { $freq[1]{$_} } (keys %{$freq[1]})),
+            scalar(max_by { $freq[2]{$_} } (keys %{$freq[2]})),
         ]
     }
     die "unknown statistic method = $method";
